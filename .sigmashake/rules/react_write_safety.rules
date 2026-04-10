@@ -1,0 +1,54 @@
+# react_write_safety.rules — React and JSX security enforcement.
+# Technology: react | Capability: write
+# Covers: XSS via dangerouslySetInnerHTML, missing keys, href injection, eval in JSX.
+
+rule no-dangerous-html {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content CONTAINS "dangerouslySetInnerHTML"
+  OR path GLOB "**/*.jsx" AND content CONTAINS "dangerouslySetInnerHTML"
+  MESSAGE "dangerouslySetInnerHTML bypasses React's XSS protection. If you need HTML rendering, sanitize with DOMPurify first: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }}"
+}
+
+rule no-href-javascript {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "href\\s*=\\s*[{\"']javascript:"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "href\\s*=\\s*[{\"']javascript:"
+  MESSAGE "href=\"javascript:\" enables XSS attacks. Use onClick handlers instead of javascript: URIs."
+}
+
+rule ask-external-url-href {
+  enabled true
+  priority 75
+  severity warning
+  ASK write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "href\\s*=\\s*\\{[^}]*\\}"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "href\\s*=\\s*\\{[^}]*\\}"
+  MESSAGE "Dynamic href detected. Validate that user-supplied values cannot inject javascript: or data: URIs."
+  PROMPT "Is the href value validated/sanitized before rendering? Consider using a URL validation function to block javascript: and data: schemes."
+}
+
+rule no-target-blank-without-rel {
+  enabled true
+  priority 80
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "target\\s*=\\s*[\"']_blank[\"']" AND content NOT CONTAINS "rel="
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "target\\s*=\\s*[\"']_blank[\"']" AND content NOT CONTAINS "rel="
+  MESSAGE "target=\"_blank\" without rel=\"noopener noreferrer\" allows the new page to access window.opener (reverse tabnapping). Add rel=\"noopener noreferrer\"."
+}
+
+rule no-missing-key-in-list {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "\\.map\\(\\s*\\([^)]*\\)\\s*=>"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "\\.map\\(\\s*\\([^)]*\\)\\s*=>"
+  MESSAGE "Array .map() rendering detected. Ensure each rendered element has a unique 'key' prop — missing keys cause incorrect re-renders and React warnings."
+}
