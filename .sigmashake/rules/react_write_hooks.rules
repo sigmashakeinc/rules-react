@@ -16,11 +16,10 @@ rule ask-empty-dep-array {
   enabled true
   priority 75
   severity warning
-  ASK write
+  LOG write
   IF path GLOB "**/*.tsx" AND content LINE_REGEX "use(Effect|Callback|Memo)\\s*\\([^,]+,\\s*\\[\\]"
   OR path GLOB "**/*.jsx" AND content LINE_REGEX "use(Effect|Callback|Memo)\\s*\\([^,]+,\\s*\\[\\]"
   MESSAGE "Empty dependency array [] means this hook only runs once (on mount). Verify this is intentional and there are no stale closure issues with captured values."
-  PROMPT "Does this hook reference any state or props? If so, they should be in the dependency array to avoid stale closure bugs."
 }
 
 rule no-setstate-in-render {

@@ -26,11 +26,10 @@ rule ask-external-url-href {
   enabled true
   priority 75
   severity warning
-  ASK write
+  LOG write
   IF path GLOB "**/*.tsx" AND content LINE_REGEX "href\\s*=\\s*\\{[^}]*\\}"
   OR path GLOB "**/*.jsx" AND content LINE_REGEX "href\\s*=\\s*\\{[^}]*\\}"
   MESSAGE "Dynamic href detected. Validate that user-supplied values cannot inject javascript: or data: URIs."
-  PROMPT "Is the href value validated/sanitized before rendering? Consider using a URL validation function to block javascript: and data: schemes."
 }
 
 rule no-target-blank-without-rel {

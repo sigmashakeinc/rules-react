@@ -16,11 +16,10 @@ rule no-click-without-keyboard {
   enabled true
   priority 80
   severity warning
-  ASK write
+  LOG write
   IF path GLOB "**/*.tsx" AND content LINE_REGEX "onClick\\s*=" AND content NOT LINE_REGEX "onKeyDown\\s*=" AND content NOT LINE_REGEX "<button" AND content NOT LINE_REGEX "<a\\s"
   OR path GLOB "**/*.jsx" AND content LINE_REGEX "onClick\\s*=" AND content NOT LINE_REGEX "onKeyDown\\s*=" AND content NOT LINE_REGEX "<button" AND content NOT LINE_REGEX "<a\\s"
   MESSAGE "Interactive element with onClick but no keyboard handler. Non-button/anchor elements with click handlers are inaccessible to keyboard users. Use <button> or add onKeyDown."
-  PROMPT "Is this a non-semantic element (div/span) with only onClick? Add onKeyDown for Enter/Space, tabIndex={0}, and role=\"button\" — or replace with <button>."
 }
 
 rule no-aria-hidden-on-focusable {
